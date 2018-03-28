@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Gremlin.Net.Driver;
 using Gremlin.Net.Driver.Remote;
+using Gremlin.Net.Structure;
 using Gremlin.Net.Structure.IO.GraphSON;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
@@ -21,7 +22,7 @@ namespace GremlinHelloWorld.Controllers
         }
 
         [HttpGet]
-        public Dictionary<string, object> Get()
+        public async Task<Dictionary<string, object>> GetAsync()
         {
             var result = new Dictionary<string, object>();
             try
@@ -32,6 +33,7 @@ namespace GremlinHelloWorld.Controllers
                 var gremlinPassword = configuration["Database:GremlinPassword"];
                 var partitionKey = configuration["Database:PartitionKey"];
 
+
                 var gremlinServer = new GremlinServer(gremlinServiceEndpoint, gremlinServicePort, true, gremlinUsername, gremlinPassword);
 
                 var random = new Random();
@@ -41,9 +43,9 @@ namespace GremlinHelloWorld.Controllers
 
 
 
-                gremlinClient.SubmitAsync("g.V().drop()").Wait();
+                await gremlinClient.SubmitAsync("g.V().drop()");
 
-                gremlinClient.SubmitAsync($"g.addV('Person').property('{partitionKey}', '{random.Next()}').property('name', 'John Doe')").Wait();
+                await gremlinClient.SubmitAsync($"g.addV('Person').property('{partitionKey}', '{random.Next()}').property('name', 'John Doe')");
 
                 //NOTE: Creating a new graph and traversal works fine, even with a defined RemoteConnection. The connection is not yet established
                 var graph = new Gremlin.Net.Structure.Graph();
@@ -53,7 +55,7 @@ namespace GremlinHelloWorld.Controllers
                     .V().HasLabel("Person").Count();
 
 
-                var count = traversal.Next(); //NOTE: this throws a NullReferenceException
+                var count = traversal.ToList(); //NOTE: this throws a NullReferenceException
 
                 //NOTE: expected result would be "1", but the call above throws an exception<
                 result.Add("count", count);
@@ -61,6 +63,9 @@ namespace GremlinHelloWorld.Controllers
             catch (Exception e)
             {
                 result.Add("exception", e);
+            } finally
+            {
+
             }
             return result;
         }
