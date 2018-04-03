@@ -56,15 +56,16 @@ namespace GremlinHelloWorld.Controllers
                     .V().HasLabel("Person").Count();
 
 
-                var count = traversal.ToList(); //NOTE: this throws a NullReferenceException
+                var count = traversal.Next(); //NOTE: this throws a NullReferenceException on CosmosDB, but works fine on Tinkerpop's Gremlin-Server
 
-                //NOTE: expected result would be "1", but the call above throws an exception<
+                //NOTE: expected result would be "1"
                 result.Add("count", count);
             }
             catch (Exception e)
             {
                 result.Add("exception", e);
-            } finally
+            }
+            finally
             {
 
             }
