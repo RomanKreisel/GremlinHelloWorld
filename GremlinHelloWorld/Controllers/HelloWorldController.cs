@@ -32,9 +32,10 @@ namespace GremlinHelloWorld.Controllers
                 var gremlinUsername = configuration["Database:GremlinUsername"];
                 var gremlinPassword = configuration["Database:GremlinPassword"];
                 var partitionKey = configuration["Database:PartitionKey"];
+                var useSSL = Boolean.Parse(configuration["Database:UseSSL"]);
 
 
-                var gremlinServer = new GremlinServer(gremlinServiceEndpoint, gremlinServicePort, true, gremlinUsername, gremlinPassword);
+                var gremlinServer = new GremlinServer(gremlinServiceEndpoint, gremlinServicePort, useSSL, gremlinUsername, gremlinPassword);
 
                 var random = new Random();
 
@@ -48,7 +49,7 @@ namespace GremlinHelloWorld.Controllers
                 await gremlinClient.SubmitAsync($"g.addV('Person').property('{partitionKey}', '{random.Next()}').property('name', 'John Doe')");
 
                 //NOTE: Creating a new graph and traversal works fine, even with a defined RemoteConnection. The connection is not yet established
-                var graph = new Gremlin.Net.Structure.Graph();
+                var graph = new Graph();
                 var connection = new DriverRemoteConnection(gremlinClient);
                 var traversal = graph.Traversal()
                     .WithRemote(connection)
